@@ -56,7 +56,7 @@ int knuthStep(int n) {
     return h;
 }
 
-int allhStep(int n) {
+int kbaStep(int n) {
     int h = 1;
     while (h * 3 < n) {
         h = 3 * h;
@@ -88,7 +88,7 @@ int ShellSort(int arr[], int n) {
 
 int ShellSort0 (int arr[], int n) {
     int T = 0, C = 0, M = 0;
-    int h = allhStep(n);
+    int h = kbaStep(n);
     while (h >= 1) {
         for (int i = h; i < n; i++) {
             M++;
@@ -107,29 +107,9 @@ int ShellSort0 (int arr[], int n) {
     return T = M + C;
 }
 
-int InsertingSort(int arr[], int n) {
-    int T = 0, C = 0, M = 0;
-    for (int i = 1; i < n; i++) {
-        M++;
-        int temp = arr[i];
-        int j = i - 1;
-        while (j >= 0 && temp < arr[j]) {
-            M++;
-            arr[j + 1] = arr[j];
-            C++;
-            j--;
-        }
-        if (j >= 0) {
-            C++;
-        }
-        M++;
-        arr[j + 1] = temp;
-    }
-    return T = M + C;
-}
 
 int main() {
-    int count = 10; 
+    int count = 11; 
     int Report = 0;
 
     int N[count];
@@ -175,7 +155,7 @@ int main() {
                 printf ("--------------------Sroting-------------------\n\n");
                         if (Report == 1) { PrintMas (A, j); }
                 CheckSum (A, j);  SerSum (A, j);
-                int h = knuthStep(j);
+                int h = kbaStep(j);
                 int stepIndex = 0;
                 while (h >= 1) {
                     H1[k][stepIndex++] = h;
@@ -188,8 +168,8 @@ int main() {
 
             printf("\n\n");
             printf(" __________________________________________________________________________________________________________________________________________________________________________\n");
-            printf("|   N    |ShellSort  D.Knut|                      Steps (h)  D.Knut                           |  ShellSort KBAC |                     Steps (h)  KBAC                      |\n");
-            printf("|________|_________________|__________________________________________________________________|_________________|__________________________________________________________|\n");
+            printf("|   N    |ShellSort  D.Knut|                      Steps (h)  D.Knut                           |ShellSort KBACok|                     Steps (h)  KBACok                    |\n");
+            printf("|________|_________________|__________________________________________________________________|________________|__________________________________________________________|\n");
             for (int i = 0; i < k; i++) {
                 printf("| %-6d | %-15d |", N[i], Td0[i]);
                 int m = 0; 
@@ -208,7 +188,7 @@ int main() {
                     printf(" %-4d ", H1[i][j]);
                 }
                 printf("\n");
-            printf("|________|_________________|__________________________________________________________________|_________________|__________________________________________________________|\n");
+            printf("|________|_________________|__________________________________________________________________|_________________|_________________________________________________________|\n");
             }
         
             return 0;
