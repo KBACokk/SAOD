@@ -11,7 +11,7 @@ struct Student {
 };
 
 const char *names[] = {
-    "Влад", "Роман", "Валерия", "Виктория", "Никита", "Сергей", "Богдан", "Анрей", "Артём", "Павел", "Вадим", "Арина", "Дмитрий", "Даниил", "Самир", "Юрий", "Александр"
+    "Влад", "Роман", "Валерия", "Виктория", "Никита", "Сергей", "Богдан", "Анрей", "Артём", "Павел", "Вадим", "Александр", "Арина", "Дмитрий", "Даниил", "Самир", "Юрий", 
 };    
 
 const char *surnames[] = {
@@ -38,7 +38,7 @@ void SelSortAgePhone(int n, struct Student A[], int reverse) {
     for (int i = 0; i < n - 1; i++) {
         int k = i;
         for (int j = i + 1; j < n; j++) {
-            if (reverse == 0) {
+            if (reverse == 1) {
                 if (A[j].age < A[k].age || (A[j].age == A[k].age && A[j].phone < A[k].phone)) {
                     k = j;
                 }
@@ -60,7 +60,7 @@ void SelSortPhoneAge(int n, struct Student A[], int reverse) {
     for (int i = 0; i < n - 1; i++) {
         int k = i;
         for (int j = i + 1; j < n; j++) {
-            if (reverse == 0) {
+            if (reverse == 1) {
                 if (A[j].phone < A[k].phone || (A[j].phone == A[k].phone && A[j].age < A[k].age)) {
                     k = j;
                 }
@@ -83,7 +83,7 @@ void SelSortNameSurname(int n, struct Student A[], int reverse) {
         int k = i;
         for (int j = i + 1; j < n; j++) {
             int nameComp = strcmp(A[j].name, A[k].name);
-            if (reverse == 0) {
+            if (reverse == 1) {
                 if (nameComp < 0 || (nameComp == 0 && strcmp(A[j].surname, A[k].surname) < 0)) {
                     k = j;
                 }
@@ -105,13 +105,13 @@ void SelSortSurnameName(int n, struct Student A[], int reverse) {
     for (int i = 0; i < n - 1; i++) {
         int k = i;
         for (int j = i + 1; j < n; j++) {
-            int surnameCompare = strcmp(A[j].surname, A[k].surname);
-            if (reverse == 0) {
-                if (surnameCompare < 0 || (surnameCompare == 0 && strcmp(A[j].name, A[k].name) < 0)) {
+            int surnameComp = strcmp(A[j].surname, A[k].surname);
+            if (reverse == 1) {
+                if (surnameComp < 0 || (surnameComp == 0 && strcmp(A[j].name, A[k].name) < 0)) {
                     k = j;
                 }
             } else {
-                if (surnameCompare > 0 || (surnameCompare == 0 && strcmp(A[j].name, A[k].name) > 0)) {
+                if (surnameComp > 0 || (surnameComp == 0 && strcmp(A[j].name, A[k].name) > 0)) {
                     k = j;
                 }
             }
@@ -147,8 +147,8 @@ int main() {
     scanf("%d", &b);
 
     printf("   Выберите направление сортировки:\n");
-    printf("  > 0 По возрастанию\n");
-    printf("  > 1 По убыванию\n");
+    printf("  > 1 По возрастанию\n");
+    printf("  > 2 По убыванию\n");
     printf("   => ");
     scanf("%d", &reverse);
 
@@ -169,6 +169,4 @@ int main() {
     for (int i = 0; i < n; i++) {
         Info(students[i]);
     }
-
-    return 0;
 }
