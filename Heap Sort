@@ -54,38 +54,48 @@ void swap(int* a, int* b) {
     *b = temp;
 }
 
-void heapmake(int arr[], int n, int i, int* M, int* C) {
+int heapmake(int arr[], int n, int i, int* M, int* C, int* H) {
+    (*H)++;
     int x = i;
     int L = 2 * i + 1;
     int R = 2 * i + 2;
 
-    (*C)++; if (L < n && arr[L] > arr[x]) {
+    (*C)++;
+    if (L < n && arr[L] > arr[x]) {
         x = L;
     }
 
-    (*C)++; if (R < n && arr[R] > arr[x]) {
+    (*C)++;
+    if (R < n && arr[R] > arr[x]) {
         x = R;
     }
 
     if (x != i) {
-        (*M) += 3; swap(&arr[i], &arr[x]);
-            heapmake(arr, n, x, M, C);
+        (*M) += 3;
+        swap(&arr[i], &arr[x]);
+        heapmake(arr, n, x, M, C, H);
     }
+    return *H;
 }
 
-int HeapSort(int arr[], int n) {
+
+
+int HeapSort(int arr[], int n, int* total_H) {
     int M = 0;
     int C = 0;
+    int H = 0;
 
     for (int i = n / 2 - 1; i >= 0; i--) {
-        heapmake(arr, n, i, &M, &C);
+        heapmake(arr, n, i, &M, &C, &H);
     }
 
     for (int i = n - 1; i >= 0; i--) {
-        M += 3; swap(&arr[0], &arr[i]);
-        heapmake(arr, i, 0, &M, &C);
+        M += 3;
+        swap(&arr[0], &arr[i]);
+        heapmake(arr, i, 0, &M, &C, &H);
     }
 
+    *total_H = H;
     return M + C;
 }
 
@@ -94,6 +104,7 @@ int main() {
     int Report = 0; // Нужно ли выводить массивы чисел
 
     int Tu[count], Td[count], Tr[count], Tt[count], N[count];
+    int TuH[count], TdH[count], TrH[count];
     int k = 0;
 
 
@@ -105,7 +116,9 @@ int main() {
         CheckSum(A, j);
         SerSum(A, j);
         
-        Tu[k] = HeapSort(A, j);
+        int total_H = 0;
+        Tu[k] = HeapSort(A, j, &total_H);
+        TuH[k] = total_H;
         
         printf("--------------------Sorting-------------------\n\n");
         if (Report) PrintMas(A, j);
@@ -126,7 +139,9 @@ int main() {
         CheckSum(A, j);
         SerSum(A, j);
         
-        Td[k] = HeapSort(A, j);
+        int total_H = 0;
+        Td[k] = HeapSort(A, j, &total_H);
+        TdH[k] = total_H;
         
         printf("--------------------Sorting-------------------\n\n");
         if (Report) PrintMas(A, j);
@@ -145,7 +160,10 @@ int main() {
         CheckSum(A, j);
         SerSum(A, j);
         
-        Tr[k] = HeapSort(A, j);
+        int total_H = 0;
+        Tr[k] = HeapSort(A, j, &total_H);
+        TrH[k] = total_H;
+
         Tt[k] = ( j * log2(j) + 6.5*j - 4 ) + ( 2 * j* log2(j) + j + 2 );
         
         printf("--------------------Sorting-------------------\n\n");
@@ -155,14 +173,36 @@ int main() {
         k++;
     }
 
+    printf("\n\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
+    printf("  \x1b[1;33m|   <<<<<  *** Подсчёт трудоёмкости построения пирамиды ***  >>>>>   |\x1b[0m\n");
+    printf("\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
+
+    printf("\n");
+    printf("         __________________________________________________\n");
+    printf("        |     |                 M+C (fact)                 |\n");
+    printf("        |  N  |____________________________________________|\n");
+    printf("        |     |    Down           Upper           Rand     |\n");
+    printf("        |_____|____________________________________________|\n");
+    for (int i = 0; i < count; i++) {
+        printf("        | %-4d| %-13d   %-13d   %-10d | \n", 
+               N[i],TdH[i], TuH[i], TrH[i]);
+        printf("        |_____|____________________________________________|\n");
+    }
+
+
+    printf("\n\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
+    printf("  \x1b[1;33m|        <<<<<  *** Подсчёт трудоёмкости Heap Sort ***  >>>>>        |\x1b[0m\n");
+    printf("\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
+
+
     printf("\n\n");
-    printf("____________________________________________________________________\n");
+    printf(" ___________________________________________________________________\n");
     printf("|     |                |                 M+C (fact)                 |\n");
     printf("|  N  |       M+C      |____________________________________________|\n");
     printf("|     |      theor     |    Down           Upper           Rand     |\n");
     printf("|_____|________________|____________________________________________|\n");
     for (int i = 0; i < count; i++) {
-        printf("| %-4d| %-13d | %-13d   %-13d   %-13d  \n", 
+        printf("| %-4d| %-14d | %-13d   %-13d   %-10d | \n", 
                N[i], Tt[i], Td[i], Tu[i], Tr[i]);
         printf("|_____|________________|____________________________________________|\n");
     }
