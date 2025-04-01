@@ -1,0 +1,171 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
+
+void UpperMas(int A[], int n) {
+    for (int i = 0; i < n; i++) {
+        A[i] = i + 1;
+    }
+}
+
+void DownMas(int A[], int n) {
+    for (int i = 0; i < n; i++) {
+        A[i] = n - i;
+    }
+}
+
+void RandMas(int A[], int n) {
+    srand(time(NULL));
+    for (int i = 0; i < n; i++) {
+        A[i] = rand() % 100;
+    }
+}
+
+int CheckSum(int A[], int n) {
+    int sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += A[i];
+    }
+    printf("Control Sum => %d\n", sum);
+    return sum;
+}
+
+int SerSum(int A[], int n) {
+    int ser = 1;
+    for (int i = 1; i < n; i++) {
+        if (A[i] < A[i - 1]) ser++;
+    }
+    printf("Control Ser => %d\n", ser);
+    return ser;
+}
+
+void PrintMas(int A[], int n) {
+    printf("Massive {");
+    for (int i = 0; i < n; i++) {
+        printf(" %d ", A[i]);
+    }
+    printf("} \n");
+}
+
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void heapmake(int arr[], int n, int i, int* M, int* C) {
+    int x = i;
+    int L = 2 * i + 1;
+    int R = 2 * i + 2;
+
+    (*C)++; if (L < n && arr[L] > arr[x]) {
+        x = L;
+    }
+
+    (*C)++; if (R < n && arr[R] > arr[x]) {
+        x = R;
+    }
+
+    if (x != i) {
+        (*M) += 3; swap(&arr[i], &arr[x]);
+            heapmake(arr, n, x, M, C);
+    }
+}
+
+int HeapSort(int arr[], int n) {
+    int M = 0;
+    int C = 0;
+
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapmake(arr, n, i, &M, &C);
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        M += 3; swap(&arr[0], &arr[i]);
+        heapmake(arr, i, 0, &M, &C);
+    }
+
+    return M + C;
+}
+
+int main() {
+    int count = 5; // Количество строк итоговой таблицы
+    int Report = 0; // Нужно ли выводить массивы чисел
+
+    int Tu[count], Td[count], Tr[count], Tt[count], N[count];
+    int k = 0;
+
+
+    for (int j = 100; j <= count * 100; j += 100) {
+        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
+        int A[j];
+        UpperMas(A, j);
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        
+        Tu[k] = HeapSort(A, j);
+        
+        printf("--------------------Sorting-------------------\n\n");
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        
+        N[k] = j;
+        k++;
+    }
+
+    k = 0;
+
+    for (int j = 100; j <= count * 100; j += 100) {
+        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
+        int A[j];
+        DownMas(A, j);
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        
+        Td[k] = HeapSort(A, j);
+        
+        printf("--------------------Sorting-------------------\n\n");
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        k++;
+    }
+
+    k = 0;
+
+    for (int j = 100; j <= count * 100; j += 100) {
+        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
+        int A[j];
+        RandMas(A, j);
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        
+        Tr[k] = HeapSort(A, j);
+        Tt[k] = ( j * log2(j) + 6.5*j - 4 ) + ( 2 * j* log2(j) + j + 2 );
+        
+        printf("--------------------Sorting-------------------\n\n");
+        if (Report) PrintMas(A, j);
+        CheckSum(A, j);
+        SerSum(A, j);
+        k++;
+    }
+
+    printf("\n\n");
+    printf("____________________________________________________________________\n");
+    printf("|     |                |                 M+C (fact)                 |\n");
+    printf("|  N  |       M+C      |____________________________________________|\n");
+    printf("|     |      theor     |    Down           Upper           Rand     |\n");
+    printf("|_____|________________|____________________________________________|\n");
+    for (int i = 0; i < count; i++) {
+        printf("| %-4d| %-13d | %-13d   %-13d   %-13d  \n", 
+               N[i], Tt[i], Td[i], Tu[i], Tr[i]);
+        printf("|_____|________________|____________________________________________|\n");
+    }
+
+    return 0;
+}
