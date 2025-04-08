@@ -3,6 +3,12 @@
 #include <time.h>
 #include <math.h>
 
+int C = 0;
+int M = 0;
+
+int C_build = 0;
+int M_build = 0;
+
 void UpperMas(int A[], int n) {
     for (int i = 0; i < n; i++){
     A[i] = i+1;}
@@ -36,164 +42,145 @@ void PrintMas(int A[], int n){
     printf("} \n");
 }
 
-void swap(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+double calculate_M(int n) { return n * log2(n) + 6.5 * n - 4; }
+
+double calculate_C(int n) { return 2 * n * log2(n) + n + 2; }
+
+double calculate_M_build(int n) { return log2(n) + 2; }
+
+double calculate_C_build(int n) { return 2 * log2(n) + 1; }
+
+void Heapmake(int A[], int L, int R) {
+    int x = A[L];
+    M++;
+    M_build++;
+    int i = L;
+    while (1)
+    {
+        int j = 2 * i + 1;
+        if (j > R)
+            break;
++
+        C++;
+        C_build++;
+        if (j < R && A[j + 1] > A[j])
+        {
+            j++;
+        }
+
+        C++;
+        C_build++;
+        if (x >= A[j])
+            break;
+
+        A[i] = A[j];
+        M++;
+        M_build++;
+        i = j;
+    }
+    
+    M++;
+    M_build++;
+    A[i] = x;
 }
 
-int heapmake(int arr[], int n, int i, int* M, int* C, int* H) {
-    (*H)++;
-    int x = i;
-    int L = 2 * i + 1;
-    int R = 2 * i + 2;
-
-    (*C)++;
-    if (L < n && arr[L] > arr[x]) {
-        x = L;
+void HeapSort(int A[], int n)
+{
+    int temp;
+    for (int L = n / 2 - 1; L >= 0; L--)
+    {
+        Heapmake(A, L, n - 1);
     }
 
-    (*C)++;
-    if (R < n && arr[R] > arr[x]) {
-        x = R;
-    }
+    for (int R = n - 1; R > 0; R--)
+    {
+        temp = A[0];
+        M++;
+        A[0] = A[R];
+        M++;
+        A[R] = temp;
+        M++;
 
-    if (x != i) {
-        (*M) += 3;
-        swap(&arr[i], &arr[x]);
-        heapmake(arr, n, x, M, C, H);
+        Heapmake(A, 0, R - 1);
     }
-    return *H;
 }
 
+int main()
+{
+    srand(time(NULL));
+    printf("  \x1b[1;33mТрудоемкость ппостроения пирамиды\x1b[0m\n");
+    printf(" _______________________________________________________________________________________\n");
+    printf("|         |       теоретические         |                  Фактические                  |\n");
+    printf("|    N    |                             |_______________________________________________|\n");
+    printf("|         |                             |   убывающий   |   случайный   |  возрастающий |\n");
+    printf("|_________|_____________________________|_______________|_______________|_______________|\n");
+    
+    for (int i = 1; i < 6; i++)
+    {
+        int n = 100 * i;
+        int A[n];
+        double M_teor_build = calculate_M_build(n);
+        double C_teor_build = calculate_C_build(n);
+        int teor_T_build = M_teor_build + C_teor_build;
 
+        DownMas(A, n);
+        Heapmake(A, 0, n-1);
+        int T_buildDec = C_build + M_build;
+        C_build=0;
+        M_build=0;
 
-int HeapSort(int arr[], int n, int* total_H) {
-    int M = 0;
-    int C = 0;
-    int H = 0;
+        RandMas(A, n);
+        Heapmake(A, 0, n-1);
+        int T_buildRan = C_build + M_build;
+        C_build=0;
+        M_build=0;
 
-    for (int i = n / 2 - 1; i >= 0; i--) {
-        heapmake(arr, n, i, &M, &C, &H);
+        UpperMas(A, n);
+        Heapmake(A, 0, n-1);
+        int T_buildInc = C_build + M_build;
+        C_build=0;
+        M_build=0;
+
+        printf("| %6d  | %27d | %13d | %13d | %13d |\n", 
+               n, teor_T_build, T_buildDec, T_buildRan, T_buildInc);
     }
+    printf("|_______________________________________________________________________________________|\n");
+    printf("  \x1b[1;33mТрудоемкость пирамидальной сортировки\x1b[0m\n");
+    printf(" _________________________________________________________\n");
+    printf("|         |                  Фактические                  |\n");
+    printf("|    N    |_______________________________________________|\n");
+    printf("|         |   убывающий   |   случайный   |  возрастающий |\n");
+    printf("|_________|_______________|_______________|_______________|\n");
 
-    for (int i = n - 1; i >= 0; i--) {
-        M += 3;
-        swap(&arr[0], &arr[i]);
-        heapmake(arr, i, 0, &M, &C, &H);
+    for (int i = 1; i < 6; i++)
+    {
+        int n = 100 * i;
+        int A[n];
+        int M_teor = calculate_M(n);
+        int C_teor = calculate_C(n);
+        int teor_T = M_teor + C_teor;
+
+        DownMas(A, n);
+        HeapSort(A, n);
+        int decT = C + M;
+        C = 0;
+        M = 0;
+
+        RandMas(A, n);
+        HeapSort(A, n);
+        int randT = C + M;
+        C = 0;
+        M = 0;
+
+        UpperMas(A, n);
+        HeapSort(A, n);
+        int incT = C + M;
+        C = 0;
+        M = 0;
+
+        printf("| %6d  | %13d | %13d | %13d |\n", n, decT, randT, incT);
     }
-
-    *total_H = H;
-    return M + C;
-}
-
-int main() {
-    int count = 5; // Количество строк итоговой таблицы
-    int Report = 0; // Нужно ли выводить массивы чисел
-
-    int Tu[count], Td[count], Tr[count], Tt[count], N[count];
-    int TuH[count], TdH[count], TrH[count];
-    int k = 0;
-
-
-    for (int j = 100; j <= count * 100; j += 100) {
-        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
-        int A[j];
-        UpperMas(A, j);
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        
-        int total_H = 0;
-        Tu[k] = HeapSort(A, j, &total_H);
-        TuH[k] = total_H;
-        
-        printf("--------------------Sorting-------------------\n\n");
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        
-        N[k] = j;
-        k++;
-    }
-
-    k = 0;
-
-    for (int j = 100; j <= count * 100; j += 100) {
-        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
-        int A[j];
-        DownMas(A, j);
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        
-        int total_H = 0;
-        Td[k] = HeapSort(A, j, &total_H);
-        TdH[k] = total_H;
-        
-        printf("--------------------Sorting-------------------\n\n");
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        k++;
-    }
-
-    k = 0;
-
-    for (int j = 100; j <= count * 100; j += 100) {
-        printf("\n     <<<<<+++++++++++++++   For massive %d elements    ++++++++++++++++++>>>>>> \n\n", j);
-        int A[j];
-        RandMas(A, j);
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        
-        int total_H = 0;
-        Tr[k] = HeapSort(A, j, &total_H);
-        TrH[k] = total_H;
-
-        Tt[k] = ( j * log2(j) + 6.5*j - 4 ) + ( 2 * j* log2(j) + j + 2 );
-        
-        printf("--------------------Sorting-------------------\n\n");
-        if (Report) PrintMas(A, j);
-        CheckSum(A, j);
-        SerSum(A, j);
-        k++;
-    }
-
-    printf("\n\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
-    printf("  \x1b[1;33m|   <<<<<  *** Подсчёт трудоёмкости построения пирамиды ***  >>>>>   |\x1b[0m\n");
-    printf("\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
-
-    printf("\n");
-    printf("         __________________________________________________\n");
-    printf("        |     |                 M+C (fact)                 |\n");
-    printf("        |  N  |____________________________________________|\n");
-    printf("        |     |    Down           Upper           Rand     |\n");
-    printf("        |_____|____________________________________________|\n");
-    for (int i = 0; i < count; i++) {
-        printf("        | %-4d| %-13d   %-13d   %-10d | \n", 
-               N[i],TdH[i], TuH[i], TrH[i]);
-        printf("        |_____|____________________________________________|\n");
-    }
-
-
-    printf("\n\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
-    printf("  \x1b[1;33m|        <<<<<  *** Подсчёт трудоёмкости Heap Sort ***  >>>>>        |\x1b[0m\n");
-    printf("\x1b[1;33m  +--------------------------------------------------------------------+\x1b[0m\n");
-
-
-    printf("\n\n");
-    printf(" ___________________________________________________________________\n");
-    printf("|     |                |                 M+C (fact)                 |\n");
-    printf("|  N  |       M+C      |____________________________________________|\n");
-    printf("|     |      theor     |    Down           Upper           Rand     |\n");
-    printf("|_____|________________|____________________________________________|\n");
-    for (int i = 0; i < count; i++) {
-        printf("| %-4d| %-14d | %-13d   %-13d   %-10d | \n", 
-               N[i], Tt[i], Td[i], Tu[i], Tr[i]);
-        printf("|_____|________________|____________________________________________|\n");
-    }
+    printf("|_________________________________________________________|\n");
 
     return 0;
 }
