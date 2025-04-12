@@ -36,12 +36,7 @@ void PrintMas(int A[], int n){
     printf("} \n");
 }
 
-void swap(int* a, int* b, int* M) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-    (*M) += 3;
-}
+
 
 int QuickSort(int arr[], int L, int R, int* M, int* C) {
     int i = L, j = R;
@@ -49,14 +44,17 @@ int QuickSort(int arr[], int L, int R, int* M, int* C) {
 
     while (i <= j) {
         (*C)++;
-        while (arr[i] < a) { i++; (*M)++; }
+        while (arr[i] < a) { i++; (*C)++; }
         
         (*C)++;
-        while (arr[j] > a) { j--; (*M)++; }
+        while (arr[j] > a) { j--; (*C)++; }
 
         if (i <= j) {
             if (i < j) {
-                swap(&arr[i], &arr[j], M);
+                int temp = arr[i];
+                arr[j] = arr[i];
+                arr[i] = temp;
+                (*M) += 3;
             }
             i++;
             j--;
