@@ -45,14 +45,14 @@ void swap(int* a, int* b, int* M) {
 
 int QuickSort(int arr[], int L, int R, int* M, int* C) {
     int i = L, j = R;
-    int x = arr[(L + R) / 2]; 
+    int a = arr[L]; 
 
     while (i <= j) {
         (*C)++;
-        while (arr[i] < x) { i++; (*C)++; }
+        while (arr[i] < a) { i++; (*M)++; }
         
         (*C)++;
-        while (arr[j] > x) { j--; (*C)++; }
+        while (arr[j] > a) { j--; (*M)++; }
 
         if (i <= j) {
             if (i < j) {
@@ -63,9 +63,8 @@ int QuickSort(int arr[], int L, int R, int* M, int* C) {
         }
     } 
 
-    int ops = 0;
-    if (L < j) ops += QuickSort(arr, L, j, M, C);
-    if (i < R) ops += QuickSort(arr, i, R, M, C);
+    if (L < j) { QuickSort(arr, L, j, M, C); }
+    if (i < R) { QuickSort(arr, i, R, M, C); }
     
     return *M + *C;
 }
@@ -130,7 +129,8 @@ int main() {
         int M = 0, C = 0;
         Tr[k] = QuickSort(A, 0, j-1, &M, &C);
         
-        Tt[k] = (int)(2 * j * log2(j)); 
+        // Tt[k] = (int)(2 * j * log2(j));
+        // Tt[k] = (3*(j-1) + (j*j + 5*j+4)/2);
         
         printf("--------------------Sorting-------------------\n\n");
         if (Report) PrintMas(A, j);
@@ -140,15 +140,15 @@ int main() {
     }
 
     printf("\n\n");
-    printf("____________________________________________________________________\n");
-    printf("|     |                |                 M+C (fact)                 |\n");
-    printf("|  N  |       M+C      |____________________________________________|\n");
-    printf("|     |      theor     |    Down           Upper           Rand     |\n");
-    printf("|_____|________________|____________________________________________|\n");
+    printf("___________________________________________________\n");
+    printf("|     |                 M+C (fact)                 |\n");
+    printf("|  N  |____________________________________________|\n");
+    printf("|     |    Down           Upper           Rand     |\n");
+    printf("|_____|____________________________________________|\n");
     for (int i = 0; i < count; i++) {
-        printf("| %-4d| %-14d | %-13d   %-13d   %-10d | \n", 
-               N[i], Tt[i], Td[i], Tu[i], Tr[i]);
-        printf("|_____|________________|____________________________________________|\n");
+        printf("| %-4d| %-13d   %-13d   %-10d | \n", 
+               N[i],  Td[i], Tu[i], Tr[i]);
+        printf("|_____|____________________________________________|\n");
     }
 
     return 0;
