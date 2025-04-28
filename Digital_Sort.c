@@ -103,7 +103,7 @@ void print_list(tData *head)
         printf("%d ", p->data);
         p = p->next;
     }
-    printf("\n");
+    // printf("\n");
 }
 
 int checksum(tData *head)
@@ -159,26 +159,22 @@ void InitializeQueue(tQueue *q) {
     q->head = q->tail = NULL;
 }
 
-void DigitalSort(tData** S, int L, int* moves) {
-    if (*S == NULL) return;
+void DigitalSort(tData** S, int num_passes, int* moves) {
+    if (*S == NULL || num_passes <= 0) return;
     
-    // Создаем массив из 10 очередей (по цифрам 0-9)
-    tQueue Q[10];
-    for (int i = 0; i < 10; i++) {
+    tQueue Q[256];
+    for (int i = 0; i < 256; i++) {
         InitializeQueue(&Q[i]);
     }
     
-    // Проходим по всем разрядам от младшего к старшему
-    for (int j = 0; j < L; j++) {
-        // Инициализация очередей
-        for (int i = 0; i < 10; i++) {
+    for (int pass = 0; pass < num_passes; pass++) {
+        for (int i = 0; i < 256; i++) {
             Q[i].head = Q[i].tail = NULL;
         }
-        
-        // Распределение элементов по очередям
+
         tData* p = *S;
         while (p != NULL) {
-            int digit = (p->data / (int)pow(10, j)) % 10;
+            unsigned char digit = (p->data >> (8 * pass)) & 0xFF;
             
             if (Q[digit].head == NULL) {
                 Q[digit].head = Q[digit].tail = p;
@@ -191,11 +187,10 @@ void DigitalSort(tData** S, int L, int* moves) {
             (*moves)++;
         }
         
-        // Соединение очередей обратно в список
         tData* newHead = NULL;
         tData* newTail = NULL;
         
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 256; i++) {
             if (Q[i].head != NULL) {
                 if (newHead == NULL) {
                     newHead = Q[i].head;
@@ -222,15 +217,10 @@ int main() {
     int count = 5; 
     int Report = 0;
 
-    printf(" ________________________________________________________________\n");
-    printf("|       |     M + C     |             |            |             |\n");
-    printf("|   N   |     Theor     |     Upper   |    Down    |    Rand     |\n");
-    printf("|_______|_______________|_____________|____________|_____________|\n");
-
     int Trand[count], Tinc[count], Tdec[count], Ttheor[count];
     int sizes[count];
     
-    const int L = 2;
+    const int L = 16;
     
     for (int j = 0; j < count; j++) {
         int size = 100 * (j + 1);
@@ -238,36 +228,61 @@ int main() {
 
         fillRanStack(&A, size);
         if (Report) { 
-            printf("Исходный случайный список:\n");
-            print_list(A); 
+            printf("Исходный случайный список:   ");
+            print_list(A); printf (" }\n\n");
         }
         Mfact = 0;
         DigitalSort(&A, L, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A);   printf (" }\n\n");
+        }
+
         Trand[j] = Mfact;
         clear(A); A = NULL;
 
         fillIncStack(&A, size);
         if (Report) { 
-            printf("Исходный возрастающий список:\n");
-            print_list(A); 
+            printf("Исходный возрастающий список:   ");
+            print_list(A); printf (" }\n\n");
         }
         Mfact = 0;
         DigitalSort(&A, L, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+
         Tinc[j] = Mfact;
         clear(A); A = NULL;
 
         fillDecStack(&A, size);
         if (Report) { 
-            printf("Исходный убывающий список:\n");
-            print_list(A); 
+            printf("Исходный убывающий список:   ");
+            print_list(A); printf (" }\n\n");
         }
         Mfact = 0;
         DigitalSort(&A, L, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+
         Tdec[j] = Mfact;
         clear(A); A = NULL;
 
         Ttheor[j] = size * L;
     }
+
+    printf("\n\n\n");
+    printf("                   For L = 16 bit ( 2 bytes )                    \n");
+    printf(" ________________________________________________________________\n");
+    printf("|       |     M + C     |             |            |             |\n");
+    printf("|   N   |     Theor     |     Upper   |    Down    |    Rand     |\n");
+    printf("|_______|_______________|_____________|____________|_____________|\n");
 
     for (int j = 0; j < count; j++) {
         printf("| %5d | %13d | %11d | %10d | %11d |\n", 
@@ -275,5 +290,78 @@ int main() {
         printf("|_______|_______________|_____________|____________|_____________|\n");
     }
 
-    return 0;
+
+
+    int Trand1[count], Tinc1[count], Tdec1[count], Ttheor1[count];
+    int sizes1[count];
+    
+    const int L1 = 32;
+    
+    for (int j = 0; j < count; j++) {
+        int size = 100 * (j + 1);
+        sizes1[j] = size;
+
+        fillRanStack(&A, size);
+        if (Report) { 
+            printf("Исходный случайный список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+        Mfact = 0;
+        DigitalSort(&A, L1, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A);   printf (" }\n\n");
+        }
+
+        Trand1[j] = Mfact;
+        clear(A); A = NULL;
+
+        fillIncStack(&A, size);
+        if (Report) { 
+            printf("Исходный возрастающий список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+        Mfact = 0;
+        DigitalSort(&A, L1, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+
+        Tinc1[j] = Mfact;
+        clear(A); A = NULL;
+
+        fillDecStack(&A, size);
+        if (Report) { 
+            printf("Исходный убывающий список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+        Mfact = 0;
+        DigitalSort(&A, L1, &Mfact);
+
+        if (Report) { 
+            printf("Отсортированный случайный список:   ");
+            print_list(A); printf (" }\n\n");
+        }
+
+        Tdec1[j] = Mfact;
+        clear(A); A = NULL;
+
+        Ttheor1[j] = size * L1;
+    }
+
+    printf("\n\n\n");
+    printf("                   For L = 32 bit ( 4 bytes )                    \n");
+    printf(" ________________________________________________________________\n");
+    printf("|       |     M + C     |             |            |             |\n");
+    printf("|   N   |     Theor     |     Upper   |    Down    |    Rand     |\n");
+    printf("|_______|_______________|_____________|____________|_____________|\n");
+
+    for (int j = 0; j < count; j++) {
+        printf("| %5d | %13d | %11d | %10d | %11d |\n", 
+               sizes1[j], Ttheor1[j], Tinc1[j], Tdec1[j], Trand1[j]);
+        printf("|_______|_______________|_____________|____________|_____________|\n");
+    }
 }
