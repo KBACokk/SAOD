@@ -29,7 +29,7 @@ void freeTable(Node** table, int tableSize) {
     free(table);}
 
 void generateRandomText(char* buffer, size_t size) {
-    const char charset[] = " Xylophone quantum zebra jigsaw paradox! Banana tesseract whispers to purple gravity. Jellyfish calculus dances with invisible spaghetti. Thunder harmonize with silent waffles. Paradoxical pickles juggle fractal oranges. Ninja unicorns debate existential pancakes. Velcro moonbeams tickle quantum llamas. Abstract broccoli composes jazz for robots. Hyperbolic marshmallows decode binary rainbows. Celestial spaghetti negotiates with fractal donuts. Oblivious pineapples calculate imaginary taxes 1234567890!@#$^&*()_+-=[]{}|;\':\",./<>?~";
+    const char charset[] = " LorEm!ipsum?dolor$sit@amet, xyz123! ~Consectetur*adipiscing^elit. Qu1z_why@reading+this#nonsense? R@nd0m!junk: data{flow}=42; ~V0lUptAtE?n0n!qu3sti0n. B@ck_t0_work! Lorem*ipsum=dolor#si.I love.t%met. 7h.you.1s!isN0t@real$text. G0_@w@y! 42+xyz=99? N0pe. Just@waste^your%time. By3! ";
     for (size_t i = 0; i < size - 1; i++) {
         buffer[i] = charset[rand() % (sizeof(charset) - 1)];}
     buffer[size - 1] = '\0';}
@@ -54,7 +54,8 @@ int main() {
 
         int collisionCount = 0;
         for (size_t i = 0; i < textSize && text[i] != '\0'; i++) {
-            collisionCount += insert(table, tableSize, (int)text[i]);}
+            collisionCount += insert(table, tableSize, (int)text[i]);
+        }
 
         printf("|%4d  |%10zu     |%10d     |\n", tableSize, strlen(text), collisionCount);
         printf("|______|_______________|_______________|\n");
