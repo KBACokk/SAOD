@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #define cnt 100
+#define del 10
 
 typedef struct Vertex {
     int Data;
@@ -115,21 +116,6 @@ void PrintMas(int n, int A[]) {
         printf("%d ", A[i]);
     }
     printf("\n");
-}
-
-int BubbleSort(int arr[], int n) {
-    int T = 0, C = 0, M = 0;
-    for (int i = 0; i < n - 1; i++) { 
-        for (int j = n - 1; j > i; j--) {
-            int temp; 
-            C++; if (arr[j] < arr[j-1]) {
-                M++; temp = arr[j];
-                M++; arr[j] = arr[j-1];
-                M++; arr[j-1] = temp; 
-            }
-        }
-    }
-    return T = C + M;
 }
 
 Vertex *ISDP(int L, int R, int A[])
@@ -249,27 +235,24 @@ int main()
         sort[i] = rand[i];
     }
 
-    Vertex *SDP1Root = NULL;
+    Vertex *Root = NULL;
     for (int i = 0; i < cnt; i++) {
-        DoubleSDP(&SDP1Root, rand[i]);
+        DoubleSDP(&Root, rand[i]);
     }
-    
-    BubbleSort(sort, cnt);
 
-    Vertex *deleteRoot = NULL;
+    Vertex *Rootcompare = NULL;
     for (int i = 0; i < cnt; i++) {
-        DoubleSDP(&deleteRoot, rand[i]);
+        DoubleSDP(&Rootcompare, rand[i]);
     }
     
     printf("Исходное дерево перед удалением:\n");
-    Left_to_Right(deleteRoot);
-    printf("\nРазмер дерева: %d, Контрольная сумма: %d, Высота: %d\n", 
-           Size(deleteRoot), CheckSum(deleteRoot), Height(deleteRoot));
+    Left_to_Right(Root);
+    printf("\nРазмер дерева: %d, Контрольная сумма: %d, Высота: %d\n", Size(Root), CheckSum(Root), Height(Root));
     
-    int keysToDelete[10];
-    printf("\nВведите 10 ключей для удаления из дерева:\n");
+    int keysToDelete[del];
+    printf("\nВведите %d ключей для удаления из дерева:\n", del);
     
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < del; i++) {
         printf("Ключ %d ->  ", i + 1);
         scanf("%d", &keysToDelete[i]);
     }
@@ -283,17 +266,16 @@ int main()
         
         printf("\n--- Удаление вершины с ключом \x1b[1;31m%d\x1b[0m\n ---\n", key);
         
-        if (Search(deleteRoot, key)) {
-            Delete(&deleteRoot, key);
+        if (Search(Root, key)) {
+            Delete(&Root, key);
             printf("\x1b[1;32mВершина удалена успешно.\x1b[0m\n");
         } else {
             printf("\x1b[1;33mВершина с ключом %d не найдена.\x1b[0m\n\n", key);
         }
         
         printf("Обход дерева после удаления: ");
-        Left_to_Right(deleteRoot);
-        printf("\nРазмер: %d, Контр. сумма: %d, Высота: %d, Ср. высота: %.2f\n",
-               Size(deleteRoot), CheckSum(deleteRoot), Height(deleteRoot), AverageHeight(deleteRoot));
+        Left_to_Right(Root);
+        printf("\nРазмер: %d, Контр. сумма: %d, Высота: %d, Ср. высота: %.2f\n", Size(Root), CheckSum(Root), Height(Root), AverageHeight(Root));
         
         printf("\n");
     }
@@ -303,15 +285,15 @@ int main()
     printf("═══════════════════════════════════════════════════════════════════════════════\n");
     
     printf("Итоговый обход дерева: ");
-    Left_to_Right(deleteRoot);
+    Left_to_Right(Root);
     printf("\n\n╔══════════════════════╦════════════╦═════════════════╦════════════╦═══════════════╗\n");
-    printf("║      Тип дерева      ║  Размер    ║  Контр. сумма   ║   Высота   ║   Ср. высота  ║\n");
-    printf("╠══════════════════════╬════════════╬═════════════════╬════════════╬═══════════════╣\n");
+        printf("║      Тип дерева      ║  Размер    ║  Контр. сумма   ║   Высота   ║   Ср. высота  ║\n");
+        printf("╠══════════════════════╬════════════╬═════════════════╬════════════╬═══════════════╣\n");
     
-    Result("Исходное СДП        ", SDP1Root);
-    Result("СДП после удалений  ", deleteRoot);
+    Result("Исходное СДП        ", Rootcompare);
+    Result("СДП после удалений  ", Root);
     
-    printf("╚══════════════════════╩════════════╩═════════════════╩════════════╩═══════════════╝\n");
+        printf("╚══════════════════════╩════════════╩═════════════════╩════════════╩═══════════════╝\n");
 
     return 0;
 }
