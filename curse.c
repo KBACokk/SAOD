@@ -110,14 +110,13 @@ int less(const record *a, const record *b)
 
     return 1;
 }
-// Функция сравнения для qsort
+
 int compare_records(const void *a, const void *b) {
     const record *rec_a = *(const record **)a;
     const record *rec_b = *(const record **)b;
     return less(rec_a, rec_b) ? -1 : 1;
 }
 
-// Реализация метода Вилльямса-Флойда (Heapsort) для массива указателей на record
 void Heapmake(record **A, int L, int R) {
     record *x = A[L];
     int i = L;
@@ -140,12 +139,11 @@ void Heapmake(record **A, int L, int R) {
 }
 
 void HeapSort(record **A, int n) {
-    // Построение пирамиды
+
     for (int L = n / 2 - 1; L >= 0; L--) {
         Heapmake(A, L, n - 1);
     }
 
-    // Сортировка
     for (int R = n - 1; R > 0; R--) {
         record *temp = A[0];
         A[0] = A[R];
@@ -216,10 +214,10 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
         printf("%s\n", title);
         printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
                current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
-        printf("-----------------------------------------------------------------------------------------\n");
-        printf("|%-4s | %-30s | %-8s | %-20s | %-10s|\n",
+        printf("╔═════╦═══════════════════════════════╦════════╦═══════════════════════╦═══════════╗\n");
+        printf("║%-6s ║ %-32s ║ %-9s  ║ %-30s ║ %-14s║                    ║\n",
                "№", "ФИО", "Отдел", "Должность", "Дата");
-        printf("-----------------------------------------------------------------------------------------\n");
+        printf("╠═════╬═══════════════════════════════╬════════╬═══════════════════════╬═══════════╣\n");
 
         for (int i = pageStart; i < pageEnd; i++)
         {
@@ -230,7 +228,7 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
             char *fio_utf8 = convert_cp866_to_utf8(r->FIO);
             char *position_utf8 = convert_cp866_to_utf8(r->Position);
             
-            printf("|%-4d | %-30s | %-6hd | %-20s | %-10s|\n",
+            printf("║%-4d ║ %-30s ║ %-6hd ║ %-20s ║ %-10s║\n",
                    i + 1, 
                    fio_utf8 ? fio_utf8 : r->FIO,
                    r->Department,
@@ -241,9 +239,9 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
             free(position_utf8);
         }
 
-        printf("-----------------------------------------------------------------------------------------\n");
+        printf("╚═════╩═══════════════════════════════╩════════╩═══════════════════════╩═══════════╝\n");
         system("chcp 65001 > nul");
-        printf("\nУправление: \n1 - предыдущая, \n2 - следующая, \n3 - начало, \n4 - конец, \n5 - перейти на страницу, \n6 - перейти к записи \n0 - выход (перейти к следующему этапу)\n");
+        printf("\n\x1b[1;35mУправление: \n -> 1 предыдущая \n -> 2 следующая \n -> 3 начало \n -> 4 конец \n -> 5 выбрать страницу \n -> 6 выбрать запись \n -> 7 сортировка (поиск)\x1b[0m\n");
         printf("Введите команду: ");
         scanf("%d", &input);
 
@@ -259,7 +257,7 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
             current_page = findPage(pages_count);
         else if (input == 6)
             current_page = findRecord(RECORDS_ON_PAGE, records_count);
-        else if (input == 0)
+        else if (input == 7)
             break;
 
     } while (1);
@@ -293,7 +291,6 @@ void fillQ(tData **head, tData **tail, record *Records, int records_count)
     }
 }
 
-// Функция для удаления пробелов в конце строки
 void trim_trailing_spaces(char *str) {
     int len = strlen(str);
     while (len > 0 && isspace((unsigned char)str[len - 1])) {
@@ -302,7 +299,6 @@ void trim_trailing_spaces(char *str) {
     }
 }
 
-// Функция для преобразования формата даты из дд.мм.гггг в дд-мм-гг
 void convert_date_format(const char *input_date, char *output_date)
 {
     if (strlen(input_date) == 10 && input_date[2] == '.' && input_date[5] == '.')
@@ -324,7 +320,6 @@ void convert_date_format(const char *input_date, char *output_date)
     }
 }
 
-// Функция для сравнения дат (с учетом пробелов в конце)
 int compare_dates(const char *date1, const char *date2)
 {
     char date1_clean[10], date2_clean[10];
@@ -339,7 +334,6 @@ int compare_dates(const char *date1, const char *date2)
     return strcmp(date1_clean, date2_clean);
 }
 
-// Функция для поиска только по дате
 void BinarySearchByDate(int n, record **records, const char *target_date_input, tData **head, tData **tail)
 {
     char target_date[10];
@@ -382,26 +376,20 @@ int main()
     int records_count = fread(allRecords, sizeof(record), N, fp);
     printf("%d records read\n", records_count);
 
-    // Просмотр всех записей
     paginateRecords(allRecords, records_count, getRecordFromArray, "ВСЕ ЗАПИСИ");
     
-    // Создаем массив указателей для сортировки
     record **recordPointers = malloc(records_count * sizeof(record *));
     for (int i = 0; i < records_count; i++) {
         recordPointers[i] = &allRecords[i];
     }
     
-    // Сортировка методом Вилльямса-Флойда (Heapsort)
     printf("Сортировка методом Вилльямса-Флойда...\n");
     HeapSort(recordPointers, records_count);
     
-    // Просмотр отсортированных записей
     paginateRecords(recordPointers, records_count, getRecordFromPtrArray, "ОТСОРТИРОВАННЫЕ ЗАПИСИ (Метод Вилльямса-Флойда)");
 
-    // Поиск записей только по дате
     char SearchDate[11];
     
-    // Ввод даты
     do
     {
         printf("Введите дату для поиска (в формате дд.мм.гггг): ");
@@ -442,10 +430,8 @@ int main()
     tData *SearchTail = NULL;
     int search_count = 0;
     
-    // Поиск записей только по дате
     BinarySearchByDate(records_count, recordPointers, SearchDate, &SearchHead, &SearchTail);
     
-    // Подсчет количества найденных записей
     tData *tmp = SearchHead;
     while (tmp)
     {
@@ -453,7 +439,6 @@ int main()
         tmp = tmp->next;
     }
     
-    // Просмотр результатов поиска
     if (search_count > 0)
     {
         char title[100];
@@ -468,7 +453,6 @@ int main()
         printf("2. Такая запись существует в базе данных\n");
     }
 
-    // Освобождение памяти
     clear(SearchHead);
     free(recordPointers);
     free(allRecords);
