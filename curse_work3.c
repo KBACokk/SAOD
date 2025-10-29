@@ -20,18 +20,19 @@ typedef struct tData
     record *data;
 } tData;
 
+typedef struct Vertex
+{
+    struct Vertex *Left;
+    struct Vertex *Right;
+    record *data;
+    short int balance;
+} Vertex;
+
 typedef struct
 {
     tData *head;
     tData *tail;
 } tQueue;
-typedef struct Vertex {
-    record *Data;         
-    int key;              
-    int balance;
-    struct Vertex *Left;
-    struct Vertex *Right;
-} Vertex;
 
 void AddToQueue(tData **head, tData **tail, record *data)
 {
@@ -64,6 +65,151 @@ void clear(tData *head)
 void InitializeQueue(tQueue *q)
 {
     q->head = q->tail = NULL;
+}
+
+void ll_rotation(Vertex **p) {
+    Vertex *q = (*p)->Left;
+    (*p)->Left = q->Right;
+    q->Right = *p;
+    (*p)->balance = 0;
+    q->balance = 0;
+    *p = q;
+}
+
+void lr_rotation(Vertex **p) {
+    Vertex *q = (*p)->Left;
+    Vertex *r = q->Right;
+
+    if (r->balance < 0) (*p)->balance = 1;
+    else (*p)->balance = 0;
+
+    if (r->balance > 0) q->balance = -1;
+    else q->balance = 0;
+
+    r->balance = 0;
+
+    q->Right = r->Left;
+    (*p)->Left = r->Right;
+    r->Left = q;
+    r->Right = *p;
+    *p = r;
+}
+
+void rl_rotation(Vertex **p) {
+    Vertex *q = (*p)->Right;
+    Vertex *r = q->Left;
+
+    if (r->balance > 0) (*p)->balance = -1;
+    else (*p)->balance = 0;
+
+    if (r->balance < 0) q->balance = 1;
+    else q->balance = 0;
+
+    r->balance = 0;
+
+    q->Left = r->Right;
+    (*p)->Right = r->Left;
+    r->Left = *p;
+    r->Right = q;
+    *p = r;
+}
+
+void rr_rotation(Vertex **p) {
+    Vertex *q = (*p)->Right;
+    (*p)->Right = q->Left;
+    q->Left = *p;
+    (*p)->balance = 0;
+    q->balance = 0;
+    *p = q;
+}
+
+int insert_AVL(record *data, Vertex **p) {
+    int growth = 0;
+    if (*p == NULL) {
+        *p = (Vertex *)malloc(sizeof(Vertex));
+        (*p)->data = data;
+        (*p)->balance = 0;
+        (*p)->Left = (*p)->Right = NULL;
+        return 1;
+    }
+
+    if (data->Department < (*p)->data->Department) {
+        growth = insert_AVL(data, &(*p)->Left);
+        if (growth) {
+            if ((*p)->balance > 0) {
+                (*p)->balance = 0;
+                return 0;
+            } else if ((*p)->balance == 0) {
+                (*p)->balance = -1;
+                return 1;
+            } else {
+                if ((*p)->Left->balance < 0)
+                    ll_rotation(p);
+                else
+                    lr_rotation(p);
+                return 0;
+            }
+        }
+    } else  {
+        growth = insert_AVL(data, &(*p)->Right);
+        if (growth) {
+            if ((*p)->balance < 0) {
+                (*p)->balance = 0;
+                return 0;
+            } else if ((*p)->balance == 0) {
+                (*p)->balance = 1;
+                return 1;
+            } else {
+                if ((*p)->Right->balance > 0)
+                    rr_rotation(p);
+                else
+                    rl_rotation(p);
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+void searchInAVLTree(Vertex *root, int dept, tData **head, tData **tail, int *count) {
+    if (root == NULL)
+        return;
+    
+    if (dept < root->data->Department) {
+        searchInAVLTree(root->Left, dept, head, tail, count);
+    } else if (dept > root->data->Department) {
+        searchInAVLTree(root->Right, dept, head, tail, count);
+    } else {
+        searchInAVLTree(root->Left, dept, head, tail, count);
+        AddToQueue(head, tail, root->data);
+        (*count)++;
+        searchInAVLTree(root->Right, dept, head, tail, count);
+    }
+}
+
+void inOrderTraversal(Vertex *root, tData **head, tData **tail, int *count) {
+    if (root == NULL)
+        return;
+    
+    inOrderTraversal(root->Left, head, tail, count);
+    AddToQueue(head, tail, root->data);
+    (*count)++;
+    inOrderTraversal(root->Right, head, tail, count);
+}
+
+void freeAVLTree(Vertex *root) {
+    if (root == NULL)
+        return;
+    
+    freeAVLTree(root->Left);
+    freeAVLTree(root->Right);
+    free(root);
+}
+
+int countAVLNodes(Vertex *root) {
+    if (root == NULL)
+        return 0;
+    return 1 + countAVLNodes(root->Left) + countAVLNodes(root->Right);
 }
 
 char* convert_cp866_to_utf8(const char *input) {
@@ -144,7 +290,8 @@ int compareByDay(const record *rec, int searchDay)
     return 0;
 }
 
-void BinarySearchByDay(int n, record *records, int searchDay, tData **head, tData **tail) {
+void BinarySearchByDay(int n, record *records, int searchDay, tData **head, tData **tail)
+{
     int L = 0, R = n - 1;
     int m;
     int found_index = -1;
@@ -252,17 +399,19 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
         system("clear");
 
         int pages_count = (records_count + RECORDS_ON_PAGE - 1) / RECORDS_ON_PAGE;
-        
-
+        if (current_page >= pages_count)
+            current_page = pages_count - 1;
+        if (current_page < 0)
+            current_page = 0;
 
         int pageStart = current_page * RECORDS_ON_PAGE;
         int pageEnd = pageStart + RECORDS_ON_PAGE;
         if (pageEnd > records_count)
             pageEnd = records_count;
 
-
         printf("%s\n", title);
-        printf("Страница: %d/%d. Записи с %d по %d из %d. \n", current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
+        printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
+               current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
         printf("╔═════╦═══════════════════════════════╦════════╦═══════════════════════╦═══════════╗\n");
         printf("║%-4s   ║ %-30s   ║ %-4s  ║     %-20s       ║ %-10s    ║\n",
                "№", "ФИО", "Отдел", "Должность", "Дата");
@@ -271,8 +420,9 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
         for (int i = pageStart; i < pageEnd; i++)
         {
             record *r = getRecord(i, source);
-            if (!r) { continue; }
-             
+            if (!r)
+                continue;
+                
             char *fio_utf8 = convert_cp866_to_utf8(r->FIO);
             char *position_utf8 = convert_cp866_to_utf8(r->Position);
             
@@ -288,16 +438,7 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
         }
         printf("╚═════╩═══════════════════════════════╩════════╩═══════════════════════╩═══════════╝\n");
         
-        printf("\nУправление: \n");
-        printf ("\n1 - предыдущая");
-        printf ("\n2 - следующая");
-        printf ("\n3 - начало");
-        printf ("\n4 - конец");
-        printf ("\n5 - перейти на страницу");
-        printf ("\n6 - перейти к записи");
-        printf ("\n7 - Сортировка ( поиск )\n");
-        
-        
+        printf("\nУправление: \n1 - предыдущая, \n2 - следующая, \n3 - начало, \n4 - конец, \n5 - перейти на страницу, \n6 - перейти к записи \n7 - перейти к следующему этапу\n");
         printf("Введите команду: ");
         scanf("%d", &input);
 
@@ -356,307 +497,6 @@ void heapSort(record arr[], int n)
     }
 }
 
-
-void ll_rotation(Vertex **p) {
-    Vertex *q = (*p)->Left;
-    (*p)->Left = q->Right;
-    q->Right = *p;
-    (*p)->balance = 0;
-    q->balance = 0;
-    *p = q;
-}
-
-void lr_rotation(Vertex **p) {
-    Vertex *q = (*p)->Left;
-    Vertex *r = q->Right;
-
-    if (r->balance < 0) (*p)->balance = 1;
-    else (*p)->balance = 0;
-
-    if (r->balance > 0) q->balance = -1;
-    else q->balance = 0;
-
-    r->balance = 0;
-
-    q->Right = r->Left;
-    (*p)->Left = r->Right;
-    r->Left = q;
-    r->Right = *p;
-    *p = r;
-}
-
-void rl_rotation(Vertex **p) {
-    Vertex *q = (*p)->Right;
-    Vertex *r = q->Left;
-
-    if (r->balance > 0) (*p)->balance = -1;
-    else (*p)->balance = 0;
-
-    if (r->balance < 0) q->balance = 1;
-    else q->balance = 0;
-
-    r->balance = 0;
-
-    q->Left = r->Right;
-    (*p)->Right = r->Left;
-    r->Left = *p;
-    r->Right = q;
-    *p = r;
-}
-
-void rr_rotation(Vertex **p) {
-    Vertex *q = (*p)->Right;
-    (*p)->Right = q->Left;
-    q->Left = *p;
-    (*p)->balance = 0;
-    q->balance = 0;
-    *p = q;
-}
-
-int insert_AVL(int key, record *data, Vertex **p) {
-    int growth = 0;
-    if (*p == NULL) {
-        *p = (Vertex *)malloc(sizeof(Vertex));
-        (*p)->key = key;
-        (*p)->Data = data;
-        (*p)->balance = 0;
-        (*p)->Left = (*p)->Right = NULL;
-        return 1;
-    }
-
-    if (key < (*p)->key) {
-        growth = insert_AVL(key, data, &(*p)->Left);
-        if (growth) {
-            if ((*p)->balance > 0) {
-                (*p)->balance = 0;
-                return 0;
-            } else if ((*p)->balance == 0) {
-                (*p)->balance = -1;
-                return 1;
-            } else {
-                if ((*p)->Left->balance < 0)
-                    ll_rotation(p);
-                else
-                    lr_rotation(p);
-                return 0;
-            }
-        }
-    } else {
-        growth = insert_AVL(key, data, &(*p)->Right);
-        if (growth) {
-            if ((*p)->balance < 0) {
-                (*p)->balance = 0;
-                return 0;
-            } else if ((*p)->balance == 0) {
-                (*p)->balance = 1;
-                return 1;
-            } else {
-                if ((*p)->Right->balance > 0)
-                    rr_rotation(p);
-                else
-                    rl_rotation(p);
-                return 0;
-            }
-        }
-    }
-    return 0;
-}
-
-
-
-int compareByDepartment(const record *rec, int searchDept) {
-    if (rec->Department < searchDept) return -1;
-    if (rec->Department > searchDept) return 1;
-    return 0;
-}
-
-void BinarySearchByDepartment(int n, record *records, int searchDept, tData **head, tData **tail) {
-    int L = 0, R = n - 1;
-    int m;
-    int found_index = -1;
-    
-    while (L <= R)
-    {
-        m = (L + R) / 2;
-        int cmp = compareByDepartment(&records[m], searchDept);
-        
-        if (cmp < 0)
-        {
-            L = m + 1;
-        }
-        else if (cmp > 0)
-        {
-            R = m - 1;
-        }
-        else
-        {
-            found_index = m;
-            R = m - 1; 
-        }
-    }
-    
-    if (found_index == -1)
-    {
-        printf("Записи с номером отдела '%d' не найдены.\n", searchDept);
-        return;
-    }
-    
-    int index = found_index;
-    int count = 0;
-    while (index < n && compareByDepartment(&records[index], searchDept) == 0)
-    {
-        AddToQueue(head, tail, &records[index]);
-        index++;
-        count++;
-    }
-    
-    printf("Найдено %d записей с номером отдела '%d'\n", count, searchDept);
-}
-
-void inorder_traversal(Vertex *node, record **treeRecords, int *index) {
-    if (node == NULL) return;
-    inorder_traversal(node->Left, treeRecords, index);
-    treeRecords[(*index)++] = node->Data;
-    inorder_traversal(node->Right, treeRecords, index);
-}
-
-void paginateRecordsAVL(Vertex *root, int records_count, const char *title) {
-    if (root == NULL) {
-        printf("%s\n", title);
-        printf("Дерево пусто.\n");
-        return;
-    }
-
-    record **treeRecords = malloc(records_count * sizeof(record*));
-    int index = 0;
-
-    inorder_traversal(root, treeRecords, &index);
-    
-    int actual_count = index; 
-    
-    if (actual_count == 0) {
-        printf("%s\n", title);
-        printf("Нет данных для отображения.\n");
-        free(treeRecords);
-        return;
-    }
-
-    int current_page = 0;
-    int input;
-
-    do
-    {
-        system("clear");
-
-        int pages_count = (actual_count + RECORDS_ON_PAGE - 1) / RECORDS_ON_PAGE;
-        if (current_page >= pages_count)
-            current_page = pages_count - 1;
-        if (current_page < 0)
-            current_page = 0;
-
-        int pageStart = current_page * RECORDS_ON_PAGE;
-        int pageEnd = pageStart + RECORDS_ON_PAGE;
-        if (pageEnd >= actual_count)
-            pageEnd = actual_count;
-
-        printf("%s\n", title);
-        printf("Страница: %d/%d. Записи с %d по %d из %d.\n", current_page + 1, pages_count, pageStart + 1, pageEnd, actual_count);
-        printf("╔═════╦═══════════════════════════════╦════════╦═══════════════════════╦═══════════╗\n");
-        printf("║%-4s   ║ %-30s   ║ %-6s  ║ %-20s           ║ %-10s    ║\n",
-               "№", "ФИО", "Отдел", "Должность", "Дата");
-        printf("╠═════╬═══════════════════════════════╬════════╬═══════════════════════╬═══════════╣\n");
-        
-        for (int i = pageStart; i < pageEnd; i++)
-        {
-            record *r = treeRecords[i];
-            if (!r) { continue; }
-             
-            char *fio_utf8 = convert_cp866_to_utf8(r->FIO);
-            char *position_utf8 = convert_cp866_to_utf8(r->Position);
-            
-            printf("║%-4d ║ %-30s ║ %-6hd ║ %-20s ║ %-10s║\n",
-                   i + 1, 
-                   fio_utf8 ? fio_utf8 : r->FIO,
-                   r->Department,
-                   position_utf8 ? position_utf8 : r->Position,
-                   r->Date);
-            
-            free(fio_utf8);
-            free(position_utf8);
-        }
-        printf("╚═════╩═══════════════════════════════╩════════╩═══════════════════════╩═══════════╝\n");
-        
-        printf("\nУправление: \n");
-        printf("1 - предыдущая\n");
-        printf("2 - следующая\n");
-        printf("3 - начало\n");
-        printf("4 - конец\n");
-        printf("5 - перейти на страницу\n");
-        printf("6 - перейти к записи\n");
-        printf("7 - Поиск по номеру отдела\n");
-        printf("8 - Выход в терминал\n");
-        
-        printf("Введите команду: ");
-        scanf("%d", &input);
-
-        if (input == 1 && current_page > 0)
-            current_page--;
-        else if (input == 2 && current_page < pages_count - 1)
-            current_page++;
-        else if (input == 3)
-            current_page = 0;
-        else if (input == 4)
-            current_page = pages_count - 1;
-        else if (input == 5)
-            current_page = findPage(pages_count);
-        else if (input == 6)
-            current_page = findRecord(actual_count);
-        else if (input == 7) {
-            int searchDept;
-            printf("Введите номер отдела для поиска: ");
-            scanf("%d", &searchDept);
-            
-            tData *searchHead = NULL;
-            tData *searchTail = NULL;
-            
-            record *deptSortedRecords = malloc(actual_count * sizeof(record));
-            for (int i = 0; i < actual_count; i++) {
-                deptSortedRecords[i] = *treeRecords[i];
-            }
-            
-            for (int i = 0; i < actual_count - 1; i++) {
-                for (int j = 0; j < actual_count - i - 1; j++) {
-                    if (deptSortedRecords[j].Department > deptSortedRecords[j + 1].Department) {
-                        record temp = deptSortedRecords[j];
-                        deptSortedRecords[j] = deptSortedRecords[j + 1];
-                        deptSortedRecords[j + 1] = temp;
-                    }
-                }
-            }
-            
-            BinarySearchByDepartment(actual_count, deptSortedRecords, searchDept, &searchHead, &searchTail);
-            
-            int search_count = 0;
-            tData *tmp = searchHead;
-            while (tmp) {
-                search_count++;
-                tmp = tmp->next;
-            }
-            
-            if (search_count > 0) {
-                paginateRecords(searchHead, search_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА ПО ОТДЕЛУ");
-            }
-        }
-        else if (input == 8) {
-            break;
-        }
-
-    } while (1);
-    
-}
-
-
-
 int main()
 {
     FILE *fp;
@@ -670,56 +510,97 @@ int main()
     record *allRecords = malloc(N * sizeof(record));
     int records_count = fread(allRecords, sizeof(record), N, fp);
     printf("%d records read\n", records_count);
-
-    int choice;
-    printf (" ==========  Вывести на экран таблицы на основе работы с .... =========  ");
-    printf("\n1 - Со списком");
-    printf("\n2 - С АВЛ-деревом");
-    printf("\nВведите команду: ");
-    scanf ("%d", &choice);
-    if (choice == 1) {
     
-        paginateRecords(allRecords, records_count, getRecordFromArray, "\n\nВсе записи");
+    paginateRecords(allRecords, records_count, getRecordFromArray, "Все записи");
     
-        record *sortedRecords = malloc(records_count * sizeof(record));
-        memcpy(sortedRecords, allRecords, records_count * sizeof(record));
-        heapSort(sortedRecords, records_count);
+    record *sortedRecords = malloc(records_count * sizeof(record));
+    memcpy(sortedRecords, allRecords, records_count * sizeof(record));
+    heapSort(sortedRecords, records_count);
+    
+    paginateRecords(sortedRecords, records_count, getRecordFromArray, "Отсортированные записи");
+    
+    int searchDay;
+    printf("Поиск по дню рождения (число от 1 до 31)\n");
+    scanf("%d", &searchDay);
+    
+    tData *searchHead = NULL;
+    tData *searchTail = NULL;
         
-        paginateRecords(sortedRecords, records_count, getRecordFromArray, "\n\nОтсортированные записи");
+    if (searchDay < 1 || searchDay > 31) {
+        printf("Неверный день! Введите число от 1 до 31\n");
+    }
+    else {
+        BinarySearchByDay(records_count, sortedRecords, searchDay, &searchHead, &searchTail);
+    }
+    
+    int search_count = 0;
+    tData *tmp = searchHead;
+    while (tmp)
+    {
+        search_count++;
+        tmp = tmp->next;
+    }
+    
+    if (search_count > 0)
+    {
+        paginateRecords(searchHead, search_count, getRecordFromQueue, "Рузультаты поиска по дню рождения ");
+        
+        printf("\n=== Построение АВЛ-дерева по номеру отдела ===\n");
+        
+        Vertex *avlRoot = NULL;
+        tData *current = searchHead;
+        
+        while (current != NULL)
+        {
+            insert_AVL(current->data, &avlRoot);
+            current = current->next;
+        }
+        
+        printf("АВЛ-дерево построено. Количество узлов: %d\n", countAVLNodes(avlRoot));
+        
+        tData *treeHead = NULL;
+        tData *treeTail = NULL;
+        int treeCount = 0;
+        inOrderTraversal(avlRoot, &treeHead, &treeTail, &treeCount);
+        
+        paginateRecords(treeHead, treeCount, getRecordFromQueue, "Содержимое АВЛ-дерева (сортировано по номеру отдела))");
+        
+        printf("\n=== Поиск по номеру отдела в АВЛ-дереве ===\n");
+        char find = 'y';
 
-        int searchDay;
-        printf("Поиск по дню рождения (число от 1 до 31)\n");
-        scanf("%d", &searchDay);
-        
-        tData *searchHead = NULL;
-        tData *searchTail = NULL;
+        while (find == 'y' || find == 'Y') {
+            printf("Хотите ли вы выполнить поиск по дереву? (y/n)\n");
+            scanf(" %c", &find);
             
-        if (searchDay < 1 || searchDay > 31) {
-            printf("Неверный день! Введите число от 1 до 31\n");
+            if (find != 'y' && find != 'Y') break;
+            
+            printf("Введите номер отдела для поиска: ");
+            int searchDept;
+            scanf("%d", &searchDept);
+            
+            tData *deptSearchHead = NULL;
+            tData *deptSearchTail = NULL;
+            int deptSearchCount = 0;
+            
+            searchInAVLTree(avlRoot, searchDept, &deptSearchHead, &deptSearchTail, &deptSearchCount);
+            
+            if (deptSearchCount > 0) {
+                printf("Найдено %d записей в отделе %d\n", deptSearchCount, searchDept);
+                paginateRecords(deptSearchHead, deptSearchCount, getRecordFromQueue, "Результаты поиска по номеру отдела в АВЛ-дереве");
+                clear(deptSearchHead);
+            } else {
+                printf("Записей в отделе %d не найдено\n", searchDept);
+            }
+            
         }
-        else {
-            BinarySearchByDay(records_count, sortedRecords, searchDay, &searchHead, &searchTail);
-        }
-        
-        int search_count = 0;
-        tData *tmp = searchHead;
-        while (tmp) {
-            search_count++;
-            tmp = tmp->next;
-        }
-        
-        if (search_count > 0) {
-            paginateRecords(searchHead, search_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА ПО ДНЮ РОЖДЕНИЯ");
-        }
-    }
 
-    else if (choice == 2) {
-        Vertex *AVL = NULL;
-    for (int i = 0; i < N; i++) {
-        insert_AVL(allRecords[i].Department, &allRecords[i], &AVL);
+        clear(treeHead);
+        freeAVLTree(avlRoot);
+        scanf("%c", &find);
+    } 
+    {
     }
-
-    paginateRecordsAVL(AVL, records_count, "\n\nАВЛ-дерево (сортировка происходила по параметру: отдел)");
+    fclose(fp);
     }
     
-}
+    
